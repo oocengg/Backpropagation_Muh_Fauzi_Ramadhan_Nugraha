@@ -36,6 +36,18 @@ Ke-201 foto adalah 45 foto uji, 15 foto `gambar_uji/`, dan 141 foto lain dari ba
 
 Pada `with_silhouette`, galat tidak turun di bawah 1 karena satu foto latih (`dataset/kelas2_pants/img27.jpg`, celana tergeletak diagonal di atas karpet bermotif) siluetnya tidak mirip celana lain. Akurasi uji sudah stabil sejak sekitar epoch ke-25, sehingga pelatihan dibatasi 100 epoch.
 
+## Contoh hasil uji
+
+Hasil kedua pendekatan pada 15 foto `gambar_uji/` yang tidak pernah dilihat jaringan (hijau = benar, merah = salah atau tidak dikenali karena output terbesar di bawah 0,5):
+
+![Hasil uji pada 15 foto gambar_uji](gambar/hasil_uji_15_foto.png)
+
+Angka di bawah tiap foto adalah nilai output terbesar (Y). Pendekatan grayscale benar pada 7 dari 15 foto, pendekatan siluet pada 13 dari 15. Dua foto yang masih salah pada siluet keduanya sepatu: `uji3` (sandal kecil, dinyatakan tidak dikenali dengan output terbesar 0,48) dan `uji5` (sepasang sepatu memenuhi bingkai, siluetnya berupa gumpalan besar, dan dikenali sebagai Pants dengan Y2 = 0,96).
+
+Tampilan halaman uji web (`uji_server.py`) dengan pilihan **Bandingkan keduanya** pada foto `uji4` (T-shirt): model siluet mengenalinya (Y1 = 0,994), sedangkan model grayscale menyatakan tidak dikenali (output terbesar 0,316).
+
+<img src="gambar/halaman_uji_web.png" width="460" alt="Halaman uji web dengan pilihan Bandingkan keduanya">
+
 ## Struktur folder
 
 ```
@@ -48,6 +60,7 @@ Backpropagation/
 │   └── kelas3_shoes/
 ├── dataset.zip              # isi dataset/ yang sama, untuk diunggah ke Google Colab
 ├── gambar_uji/              # 5 foto per kelas yang tidak pernah dilihat jaringan + sumber_gambar.csv
+├── gambar/                  # gambar hasil uji yang ditampilkan di README
 ├── uji_server.py            # server uji lokal (halaman web, pilihan model)
 ├── uji.html                 # halaman web yang dilayani oleh uji_server.py
 ├── with_grayscale/
