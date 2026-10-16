@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uji Pengenalan Pakaian</title>
+<style>
+  :root { --bg:#f7f7f5; --kartu:#ffffff; --teks:#1d1d1b; --redup:#6b6b66; --garis:#dcdcd6; --aksen:#1f6feb; --ok:#1a7f37; --salah:#b42318; --bar:#e8e8e3; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#161614; --kartu:#1f1f1c; --teks:#ececE6; --redup:#9a9a92; --garis:#35352f; --aksen:#58a6ff; --ok:#3fb950; --salah:#f85149; --bar:#2b2b27; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--teks); font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:1.5rem; margin:0 0 4px; }
+  .sub { color:var(--redup); margin:0 0 20px; font-size:.95rem; }
+  .kartu { background:var(--kartu); border:1px solid var(--garis); border-radius:12px; padding:16px; margin-bottom:16px; }
+  fieldset { border:0; padding:0; margin:0 0 14px; }
+  legend { font-weight:600; font-size:.9rem; margin-bottom:6px; padding:0; }
+  .pilihan { display:flex; flex-wrap:wrap; gap:8px; }
+  .pilihan label { border:1px solid var(--garis); border-radius:8px; padding:6px 12px; cursor:pointer; font-size:.92rem; }
+  .pilihan label:has(input:checked) { border-color:var(--aksen); background:color-mix(in srgb, var(--aksen) 12%, transparent); }
+  .pilihan input { margin-right:6px; accent-color:var(--aksen); }
+  #drop { display:block; text-align:center; border:2px dashed var(--garis); border-radius:12px; padding:26px 12px; cursor:pointer; color:var(--redup); }
+  #drop.aktif, #drop:hover { border-color:var(--aksen); color:var(--teks); }
+  #drop strong { color:var(--aksen); }
+  #berkas { display:none; }
+  #hasil { display:none; }
+  .asli { margin-bottom:12px; font-size:.8rem; color:var(--redup); }
+  .asli img { display:block; max-width:220px; max-height:260px; border:1px solid var(--garis); border-radius:6px; margin-bottom:4px; }
+  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); }
+  .model { border:1px solid var(--garis); border-radius:10px; padding:12px; }
+  .model h2 { font-size:1rem; margin:0 0 8px; }
+  .praproses { display:flex; gap:12px; align-items:flex-end; margin-bottom:10px; font-size:.78rem; color:var(--redup); }
+  .praproses img { width:130px; height:130px; image-rendering:pixelated; border:1px solid var(--garis); border-radius:6px; background:#fff; }
+  .vonis { border-radius:10px; padding:10px 12px; font-weight:600; margin-bottom:10px; border:1px solid var(--garis); }
+  .vonis.ok { color:var(--ok); border-color:var(--ok); }
+  .vonis.tidak { color:var(--salah); border-color:var(--salah); }
+  .vonis small { display:block; font-weight:400; color:var(--redup); }
+  .baris { display:grid; grid-template-columns:128px 1fr 54px; gap:8px; align-items:center; margin:5px 0; font-size:.88rem; }
+  .batang { height:12px; background:var(--bar); border-radius:6px; overflow:hidden; }
+  .batang i { display:block; height:100%; background:var(--redup); border-radius:6px; transition:width .25s; }
+  .baris.maks .batang i { background:var(--aksen); }
+  .baris.maks { font-weight:600; }
+  .angka { text-align:right; font-variant-numeric:tabular-nums; }
+  .peringatan { color:var(--salah); font-size:.85rem; margin:0 0 8px; }
+  .proses { color:var(--redup); padding:8px 0; }
+  .galat { color:var(--salah); }
+  details { color:var(--redup); font-size:.9rem; }
+  details summary { cursor:pointer; color:var(--teks); }
+  code { font:.85em ui-monospace,Menlo,Consolas,monospace; background:var(--bar); padding:1px 5px; border-radius:4px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Uji Pengenalan Pakaian</h1>
+  <p class="sub">Jaringan back propagation (input 10.000 &rarr; hidden 100 &rarr; output 3) untuk mengenali T-shirt, Pants (celana), dan Shoes (sepatu). Pilih model, lalu unggah gambar. Perhitungan berjalan di komputer Anda sendiri; gambar tidak dikirim ke internet.</p>
+
+  <div class="kartu">
+    <fieldset>
+      <legend>Model</legend>
+      <div class="pilihan">
+        <label><input type="radio" name="model" value="siluet" checked>Siluet objek (GrabCut)</label>
+        <label><input type="radio" name="model" value="baseline">Grayscale (baseline)</label>
+        <label><input type="radio" name="model" value="keduanya">Bandingkan keduanya</label>
+      </div>
+    </fieldset>
+    <label id="drop" for="berkas"><strong>Pilih gambar</strong>, seret ke sini, atau tempel dengan Ctrl+V<br><span style="font-size:.85rem">JPG, PNG, WebP, dan sebagainya</span></label>
+    <input id="berkas" type="file" accept="image/*">
+  </div>
+
+  <div id="hasil" class="kartu">
+    <div class="asli"><img id="imgAsli" alt="gambar asli"><span id="infoAsli"></span></div>
+    <div id="status" class="proses"></div>
+    <div id="keluaran" class="grid"></div>
+  </div>
+
+  <div class="kartu">
+    <details>
+      <summary>Cara kerja dan catatan</summary>
+      <p><b>Siluet objek (GrabCut):</b> objek dipisahkan dari latar dengan GrabCut (OpenCV), dijadikan siluet putih-hitam, lalu diubah ukurannya ke 100 &times; 100. Hanya <i>bentuk</i> objek yang dipakai. Akurasi pada 201 foto yang tidak ikut dilatih: sekitar 79,6%.</p>
+      <p><b>Grayscale (baseline):</b> gambar diubah ke grayscale lalu diubah ukurannya ke 100 &times; 100 (Lanczos). Akurasi pada 201 foto yang sama: sekitar 68,2%.</p>
+      <p><b>Propagasi maju</b> (Fausett hlm. 299-300): <code>z_in_j = v_0j + &Sigma; x_i v_ij</code>, <code>z_j = f(z_in_j)</code>, <code>y_in_k = w_0k + &Sigma; z_j w_jk</code>, <code>y_k = f(y_in_k)</code>, dengan <code>f(x) = 1/(1+e<sup>-x</sup>)</code>. Kelas diambil dari output terbesar; bila kurang dari 0,5 hasilnya "tidak dikenali". Y1, Y2, Y3 bukan peluang dan tidak harus berjumlah 1.</p>
+      <p><b>Catatan:</b> model siluet mengandaikan satu objek utama di dalam bingkai dengan latar yang tidak terlalu ramai (seperti foto pakaian yang digelar). Foto orang yang memakai pakaian atau latar yang sangat ramai kemungkinan besar dikenali salah.</p>
+    </details>
+  </div>
+</main>
+
+<script>
+const el = id => document.getElementById(id);
+const nf = x => x.toFixed(3).replace(".", ",");
+let berkasTerakhir = null;
+const pilihanModel = () => document.querySelector('input[name="model"]:checked').value;
+
+async function prosesFile(berkas) {
+  berkasTerakhir = berkas;
+  el("hasil").style.display = "block";
+  el("imgAsli").src = URL.createObjectURL(berkas);
+  el("infoAsli").textContent = berkas.name || "gambar";
+  el("keluaran").innerHTML = "";
+  el("status").className = "proses"; el("status").textContent = "Memproses...";
+  try {
+    const r = await fetch("/prediksi?model=" + pilihanModel(), { method: "POST", body: berkas });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.galat || "Server menolak permintaan.");
+    el("status").textContent = "";
+    el("keluaran").innerHTML = j.hasil.map(kartuModel).join("");
+  } catch (e) {
+    el("status").className = "galat";
+    el("status").textContent = (e instanceof TypeError)
+      ? "Tidak dapat menghubungi server. Jalankan dulu: python uji_server.py, lalu buka alamat yang tercetak."
+      : e.message;
+  }
+}
+
+function kartuModel(h) {
+  const y = h.y, k = h.kelas, nama = h.nama_kelas;
+  const vonis = h.dikenali
+    ? `<div class="vonis ok">DIKENALI sebagai kelas ${k + 1}: ${nama[k]}<small>Y${k + 1} = ${nf(y[k])}</small></div>`
+    : `<div class="vonis tidak">TIDAK DIKENALI<small>nilai output terbesar ${nf(y[k])} kurang dari ambang ${String(h.ambang).replace(".", ",")}</small></div>`;
+  const batang = y.map((v, i) =>
+    `<div class="baris${i === k ? " maks" : ""}"><span>Y${i + 1} &middot; ${nama[i]}</span><div class="batang"><i style="width:${(v * 100).toFixed(1)}%"></i></div><span class="angka">${nf(v)}</span></div>`).join("");
+  const peringatan = h.peringatan ? `<p class="peringatan">${h.peringatan}</p>` : "";
+  return `<div class="model"><h2>${h.judul}</h2>
+    <div class="praproses"><img src="${h.gambar}" alt="masukan jaringan"><span>masukan jaringan<br>(100 &times; 100)</span></div>
+    ${peringatan}${vonis}${batang}</div>`;
+}
+
+const drop = el("drop");
+el("berkas").addEventListener("change", e => { if (e.target.files[0]) prosesFile(e.target.files[0]); });
+document.querySelectorAll('input[name="model"]').forEach(r => r.addEventListener("change", () => { if (berkasTerakhir) prosesFile(berkasTerakhir); }));
+["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("aktif"); }));
+["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("aktif"); }));
+drop.addEventListener("drop", e => { const b = e.dataTransfer.files[0]; if (b) prosesFile(b); });
+window.addEventListener("dragover", e => e.preventDefault());
+window.addEventListener("drop", e => { e.preventDefault(); const b = e.dataTransfer.files[0]; if (b) prosesFile(b); });
+window.addEventListener("paste", e => { const it = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith("image/")); if (it) prosesFile(it.getAsFile()); });
+</script>
+</body>
+</html>
